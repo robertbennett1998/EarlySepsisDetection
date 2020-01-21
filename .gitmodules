@@ -1,0 +1,3 @@
+[submodule "external/mimic_iii"]
+	path = external/mimic_iii
+	url = https://github.com/MIT-LCP/mimic-code.git

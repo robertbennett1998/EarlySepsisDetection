@@ -1,0 +1,99 @@
+\documentclass[12pt,twoside]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage{lipsum}
+
+\RequirePackage{ifthen}
+\newboolean{ForPrinting}
+\setboolean{ForPrinting}{false}
+\ifthenelse{\boolean{ForPrinting}}{\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}}{\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm,marginratio=1:1]{geometry}}
+
+\usepackage{etoolbox}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancypagestyle{start}{%
+	\fancyhead{}
+	\renewcommand{\headrulewidth}{0pt}
+	\fancyfoot{}
+	\fancyfoot[CE,CO]{600091 Honours Stage Project 2019/20}
+	\fancyfoot[RE,RO]{\roman{\thepage}}1
+}
+
+\fancypagestyle{chapter}{%
+	\fancyhead{}
+	\renewcommand{\headrulewidth}{0pt}
+	\fancyfoot{}
+	\fancyfoot[CE,CO]{600091 Honours Stage Project 2019/20}
+	\fancyfoot[RE,RO]{\thepage}
+}
+
+\fancypagestyle{body}{%
+	\fancyhead{}
+	\fancyhead[CO,CE]{Chapter \leftmark: \rightmark}
+	\fancyfoot{}
+	\fancyfoot[CE,CO]{600091 Honours Stage Project 2019/20}
+	\fancyfoot[RE,RO]{\thepage}
+}
+
+\fancypagestyle{end}{%
+	\fancyhead{}
+	\fancyhead[CO,CE]{Genetic Algorithms for Hyperparameter Optimisation of Deep Neural Networks}
+	\fancyfoot{}
+	\fancyfoot[CE,CO]{600091 Honours Stage Project 2019/20}
+	\fancyfoot[RE,RO]{\Roman{\thepage}}
+}
+
+\newcommand{\newChapter}[2]{
+    \setcounter{chapter}{#1}
+    \setcounter{section}{0}
+    \chapter*{{#1.}{	#2}}
+    \markboth{{#1}}{{#2}}
+    \addcontentsline{toc}{chapter}{{#1.}{	#2}}
+}
+
+\patchcmd{\chapter}{\thispagestyle{plain}}{\thispagestyle{chapter}}{}{}
+
+\usepackage{listings}
+
+\title{
+		{Genetic Algorithms for Hyperparameter Optimisation of Deep Neural Networks}\\
+		{\small Early Sepsis Detection Preprocessing}
+}
+
+\author{
+		{By}\\
+		{Robert Owen Bennett}\\
+		{201706400}
+}
+
+\date{
+		{\today}
+}
+
+\begin{document}
+
+\maketitle
+ 
+
+\setcounter{page}{1}
+\tableofcontents
+
+\pagestyle{body}
+
+\newChapter{1}{Introduction}
+\input{chapters/introduction}
+ 
+\newChapter{2}{Installation}
+\input{chapters/installation}
+ 
+\newChapter{3}{Preprocessing}
+\input{chapters/preprocessing}
+
+\newChapter{4}{Info}
+ICD-9 is the International Classification of Diseases, Ninth revision. It is the official system to assigning codes to diagnoses with hospital utilization in the US.
+mICU is the Medical Intensive Care Unit.
+
+\end{document}

@@ -31,12 +31,14 @@ def ExtractSepsisLabEvents(outpath):
 
     if not outpath == new_outpath:
         os.rename(outpath, new_outpath)
-        print("Output file alread exsists (%s) renaming it to %s" % (outpath, new_outpath))
+        print("Output file already exsists (%s) renaming it to %s" % (outpath, new_outpath))
         outpath = new_outpath
 
     chunks = RunQuery(os.path.join(os.path.join(os.getcwd(), "queries"), "get_sepsis_patients_lab_events.pgsql"))
+    write_header = True
     for chunk in chunks:
-        chunk.to_csv(outpath, mode='a')
+        chunk.to_csv(outpath, mode='a', header=write_header)
+        write_header = False #only write header on first pass...
 
 def ExtractSepsisChartEvents(outpath):
     i = 0
@@ -47,9 +49,11 @@ def ExtractSepsisChartEvents(outpath):
 
     if not outpath == new_outpath:
         os.rename(outpath, new_outpath)
-        print("Output file alread exsists (%s) renaming it to %s" % (outpath, new_outpath))
+        print("Output file already exsists (%s) renaming it to %s" % (outpath, new_outpath))
         outpath = new_outpath
 
     chunks = RunQuery(os.path.join(os.path.join(os.getcwd(), "queries"), "get_sepsis_patients_chart_events.pgsql"))
+    write_header = True
     for chunk in chunks:
-        chunk.to_csv(outpath, mode='a')
+        chunk.to_csv(outpath, mode='a', header=write_header)
+        write_header = False #only write header on first pass...

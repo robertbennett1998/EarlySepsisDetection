@@ -7,13 +7,13 @@
     * 618 - carevue - respiratory rate
     * 220210 - metavision - respiratory rate
     * 778 - carevue - Arterial PaCO2
-    * 227038 - metavision - respiratory rate
+    * 227038 - metavision - Arterial PaCO2
 */
-SELECT  sp.subject_id, sp.icustay_id, 
+SELECT  sp.subject_id, sp.hadm_id, sp.icustay_id, sp.admittime, sp.intime,
         ce.itemid, ce.value, ce.valueuom, ce.charttime
 FROM mimiciii.sepsis_patients sp
 INNER JOIN mimiciii.chartevents ce
-ON sp.subject_id = ce.subject_id AND   (ce.itemid = '211'       OR -- HR
+ON sp.hadm_id = ce.hadm_id AND (ce.itemid = '211'       OR -- HR
                                         ce.itemid = '220045'    OR -- HR
                                         ce.itemid = '676'       OR -- TEMP
                                         ce.itemid = '223762'    OR -- TEMP
@@ -22,6 +22,7 @@ ON sp.subject_id = ce.subject_id AND   (ce.itemid = '211'       OR -- HR
                                         ce.itemid = '778'       OR -- Arterial PaCO2
                                         ce.itemid = '227038'       -- Arterial PaCO2
                                         )
-GROUP BY    sp.subject_id, sp.icustay_id,
+/*WHERE sp.subject_id = 21 OR sp.subject_id = 38*/
+GROUP BY    sp.subject_id, sp.hadm_id, sp.icustay_id, sp.admittime, sp.intime,
             ce.itemid, ce.value, ce.valueuom, ce.charttime
-ORDER BY sp.subject_id, sp.icustay_id, ce.charttime
+ORDER BY sp.subject_id, sp.hadm_id, sp.admittime, sp.intime, sp.icustay_id, ce.charttime

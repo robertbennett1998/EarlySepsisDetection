@@ -1,1 +1,0 @@
-SELECT * FROM mimiciii.patients p WHERE p.gender = 'M' LIMIT 1

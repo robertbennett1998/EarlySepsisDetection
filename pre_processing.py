@@ -15,6 +15,7 @@ sepsis_patients_lab_events_flattened_path = os.path.join(working_directory, "sep
 sepsis_patient_flattened_data_csv_path = os.path.join(working_directory, "sepsis_patient_flattened_data.csv")
 sepsis_patients_with_sirs_cond_path = os.path.join(working_directory, "sepsis_patients_with_sirs_cond.csv")
 sepsis_patients_with_no_sirs_cond_path = os.path.join(working_directory, "sepsis_patients_with_no_sirs_cond.csv")
+sepsis_patients_csv_path = os.path.join(working_directory, "sepsis_patients.csv")
 
 #%% Flatten function definitions
 def flatten_chart_events(chart_events_csv_path, write_to_file=False, fill_na=True, nrows=None):
@@ -248,4 +249,5 @@ sepsis_patient_flattened_data = sepsis_patient_flattened_data.groupby(["icustay_
 sepsis_patient_flattened_data["icd9_code"] = sepsis_patient_flattened_data["icd9_code"].astype(str)
 sepsis_patient_flattened_data["acquired_sirs"] = (sepsis_patient_flattened_data["continuous_sirs"] & sepsis_patient_flattened_data["icd9_code"].transform(lambda x : x.startswith("9959")))
 print(sepsis_patient_flattened_data[(sepsis_patient_flattened_data["acquired_sirs"])]["hadm_id"].nunique(), "admissions resulted in acquired in hospital sepsis.", sepsis_patient_flattened_data["hadm_id"].nunique() - sepsis_patient_flattened_data[(sepsis_patient_flattened_data["acquired_sirs"])]["hadm_id"].nunique(), "admissions didn't result in hospital acquired sepsis.")
-sepsis_patient_flattened_data.to_csv(os.path.join(working_directory, "temp.csv"))
+sepsis_patient_flattened_data = sepsis_patient_flattened_data.drop("continuous_sirs")
+sepsis_patient_flattened_data.to_csv(sepsis_patients_csv_path)

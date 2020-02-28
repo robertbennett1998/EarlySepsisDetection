@@ -30,34 +30,65 @@ def flatten_chart_events(chart_events_csv_path, write_to_file=False, fill_na=Tru
 
     chart_event_hr_data_source_1 = 211
     chart_event_hr_data_source_2 = 220045
+
     chart_event_body_temp_data_source_1 = 676
     chart_event_body_temp_data_source_2 = 223762
     chart_event_body_temp_f_data_source_1 = 678
     chart_event_body_temp_f_data_source_2 = 223761
+
     chart_event_respiratory_rate_data_source_1 = 618
     chart_event_respiratory_rate_data_source_2 = 220210
+
     chart_event_arterial_paco2_data_source_1 = 778
     chart_event_arterial_paco2_data_source_2 = 227038
+
+    chart_event_systolic_blood_pressure_data_source_1 = 51
+    chart_event_systolic_blood_pressure_data_source_2 = 442
+    chart_event_systolic_blood_pressure_data_source_3 = 455
+    chart_event_systolic_blood_pressure_data_source_4 = 6701
+    chart_event_systolic_blood_pressure_data_source_5 = 220179
+    chart_event_systolic_blood_pressure_data_source_6 = 220050
+
+    chart_event_diastolic_blood_pressure_data_source_1 = 8368
+    chart_event_diastolic_blood_pressure_data_source_2 = 8440
+    chart_event_diastolic_blood_pressure_data_source_3 = 8441
+    chart_event_diastolic_blood_pressure_data_source_4 = 8555
+    chart_event_diastolic_blood_pressure_data_source_5 = 220180
+    chart_event_diastolic_blood_pressure_data_source_6 = 220051
+
+    chart_event_blood_oxygen_saturation_data_source_1 = 646
+    chart_event_blood_oxygen_saturation_data_source_2 = 220277
 
     metavision_to_careview_item_id_map = {
         chart_event_hr_data_source_2: chart_event_hr_data_source_1,
         chart_event_body_temp_data_source_2: chart_event_body_temp_data_source_1,
         chart_event_body_temp_f_data_source_2: chart_event_body_temp_f_data_source_1,
         chart_event_respiratory_rate_data_source_2: chart_event_respiratory_rate_data_source_1,
-        chart_event_arterial_paco2_data_source_2: chart_event_arterial_paco2_data_source_1
+        chart_event_arterial_paco2_data_source_2: chart_event_arterial_paco2_data_source_1,
+        # chart_event_systolic_blood_pressure_data_source_2: chart_event_systolic_blood_pressure_data_source_1,
+        # chart_event_diastolic_blood_pressure_data_source_2: chart_event_diastolic_blood_pressure_data_source_1,
+        chart_event_blood_oxygen_saturation_data_source_2: chart_event_blood_oxygen_saturation_data_source_1
     }
 
     itemid_to_name_map = {
         chart_event_hr_data_source_1 : "heart_rate",
-        chart_event_hr_data_source_2 : "heart_rate_ERROR",
         chart_event_body_temp_data_source_1 : "body_temp",
-        chart_event_body_temp_data_source_2 : "body_temp_ERROR",
-        chart_event_body_temp_f_data_source_1 : "body_temp_f",
-        chart_event_body_temp_f_data_source_2 : "body_temp_f_ERROR",
+        chart_event_body_temp_f_data_source_1 : "body_temp_f",      
         chart_event_respiratory_rate_data_source_1 : "respiratory_rate",
-        chart_event_respiratory_rate_data_source_2 : "respiratory_rate_ERROR",
         chart_event_arterial_paco2_data_source_1 : "paco2",
-        chart_event_arterial_paco2_data_source_2 : "paco2_ERROR",
+        chart_event_systolic_blood_pressure_data_source_1 : "systolic_blood_pressure_1",
+        chart_event_systolic_blood_pressure_data_source_2 : "systolic_blood_pressure_2",
+        chart_event_systolic_blood_pressure_data_source_3 : "systolic_blood_pressure_3",
+        chart_event_systolic_blood_pressure_data_source_4 : "systolic_blood_pressure_4",
+        chart_event_systolic_blood_pressure_data_source_5 : "systolic_blood_pressure_5",
+        chart_event_systolic_blood_pressure_data_source_6 : "systolic_blood_pressure_6",
+        chart_event_diastolic_blood_pressure_data_source_1 : "diastolic_blood_pressure_1",
+        chart_event_diastolic_blood_pressure_data_source_2 : "diastolic_blood_pressure_2",
+        chart_event_diastolic_blood_pressure_data_source_3 : "diastolic_blood_pressure_3",
+        chart_event_diastolic_blood_pressure_data_source_4 : "diastolic_blood_pressure_4",
+        chart_event_diastolic_blood_pressure_data_source_5 : "diastolic_blood_pressure_5",
+        chart_event_diastolic_blood_pressure_data_source_6 : "diastolic_blood_pressure_6",
+        chart_event_blood_oxygen_saturation_data_source_1 : "blood_oxygen_saturation",
     }
 
     start_time = time.time()
@@ -65,16 +96,20 @@ def flatten_chart_events(chart_events_csv_path, write_to_file=False, fill_na=Tru
 
     ce_icu_stay_data["itemid"] = ce_icu_stay_data["itemid"].replace(metavision_to_careview_item_id_map)
     ce_icu_stay_data = ce_icu_stay_data.join(pd.pivot(ce_icu_stay_data, columns="itemid", values="value")) #move unique item ids into there own columns
+    
+    ce_icu_stay_data = ce_icu_stay_data.rename(itemid_to_name_map, axis=1) #rename the item ids to what they actual represent
+
     ce_icu_stay_data = ce_icu_stay_data.rename(itemid_to_name_map, axis=1) #rename the item ids to what they actual represent
     ce_icu_stay_data = ce_icu_stay_data.drop(["itemid", "value", "valueuom"], axis=1) #drop the item, value and valueuom columns
+
     ce_icu_stay_data["icd9_code"] = ce_icu_stay_data["icd9_code"].fillna(0)#fill the na with a number, we aren't interested in any other diagnosis and dont want the overhead of any none sepsis codes
-    ce_icu_stay_data = ce_icu_stay_data.groupby(["subject_id", "hadm_id", "icustay_id", "admittime", "intime", "icd9_code", pd.Grouper(key="charttime", freq="1h")]).agg({
-                                                                                                                                                                "heart_rate": ["min", "mean", "max"],
-                                                                                                                                                                "body_temp": ["min", "mean", "max"],
-                                                                                                                                                                "body_temp_f": ["min", "mean", "max"],
-                                                                                                                                                                "respiratory_rate": ["min", "mean", "max"],
-                                                                                                                                                                "paco2": ["min", "mean", "max"]
-                                                                                                                                                            })
+
+    aggergate_columns = dict()
+    for key, val in itemid_to_name_map.items():
+        if val in ce_icu_stay_data.columns:
+            aggergate_columns[val] = ["min", "mean", "max"]
+
+    ce_icu_stay_data = ce_icu_stay_data.groupby(["subject_id", "hadm_id", "icustay_id", "admittime", "intime", "icd9_code", pd.Grouper(key="charttime", freq="1h")]).agg(aggergate_columns)
 
     if fill_na:
         ce_icu_stay_data = ce_icu_stay_data.groupby(["icustay_id"]).transform(lambda x : x.fillna(method="ffill").fillna(method="bfill"))
@@ -107,18 +142,21 @@ def flatten_chart_events(chart_events_csv_path, write_to_file=False, fill_na=Tru
 def flatten_lab_events(lab_events_csv_path, write_to_file=False, fill_na=True, nrows=None):
     # 51301 white blood cells
     # 51144 Bands (immature white blood cells - indicate an inflamatory response - 3-5% is normal) 
+    # 50820 blood ph
 
     lab_event_white_blood_cells = 51301
     lab_event_bands = 51144
+    lab_event_blood_ph = 50820
 
     itemid_to_name_map = {
         lab_event_white_blood_cells : "white_blood_cells_k_per_uL",
-        lab_event_bands : "immature_bands_percentage"
+        lab_event_bands : "immature_bands_percentage",
+        lab_event_blood_ph : "blood_ph"
     }
     
     start_time = time.time()
     le_icu_stay_data = pd.read_csv(lab_events_csv_path, parse_dates=["charttime"], dtype={"subject_id": int, "hadm_id": int, "icustay_id": int, "itemid": int }, nrows=nrows, low_memory=False)
-    le_icu_stay_data["value"] = le_icu_stay_data.value.str.extract('(\d+)', expand=False) #TODO: Something smarter, some WBC readings are <1.0 - Probs impute 0? This takes the number part of <1.0
+    le_icu_stay_data["value"] = le_icu_stay_data.value.str.extract(r"(\-?\d+(?:.\d+)?)", expand=False) #TODO: Something smarter, some WBC readings are <1.0 - Probs impute 0? This takes the number part of <1.0
 
     le_icu_stay_data = le_icu_stay_data.join(pd.pivot(le_icu_stay_data, columns="itemid", values="value")) #move unique item ids into there own columns
     le_icu_stay_data = le_icu_stay_data.rename(itemid_to_name_map, axis=1) #rename the item ids to what they actual represent
@@ -126,11 +164,14 @@ def flatten_lab_events(lab_events_csv_path, write_to_file=False, fill_na=True, n
 
     le_icu_stay_data["immature_bands_percentage"] = le_icu_stay_data["immature_bands_percentage"].astype(float)
     le_icu_stay_data["white_blood_cells_k_per_uL"] = le_icu_stay_data["white_blood_cells_k_per_uL"].astype(float)
+    le_icu_stay_data["blood_ph"] = le_icu_stay_data["blood_ph"].astype(float)
 
-    le_icu_stay_data = le_icu_stay_data.groupby(["subject_id", "hadm_id", "icustay_id", pd.Grouper(key="charttime", freq="1h")]).agg({
-                                                                                                                                        "white_blood_cells_k_per_uL": ["min", "mean", "max"],
-                                                                                                                                        "immature_bands_percentage": ["min", "mean", "max"]
-                                                                                                                                    })
+    aggergate_columns = dict()
+    for key, val in itemid_to_name_map.items():
+        if val in le_icu_stay_data.columns:
+            aggergate_columns[val] = ["min", "mean", "max"]
+
+    le_icu_stay_data = le_icu_stay_data.groupby(["subject_id", "hadm_id", "icustay_id", pd.Grouper(key="charttime", freq="1h")]).agg(aggergate_columns)
     if fill_na:
         le_icu_stay_data = le_icu_stay_data.groupby(["icustay_id"]).transform(lambda x : x.fillna(method="ffill").fillna(method="bfill"))
 
@@ -197,6 +238,7 @@ else:
         ce_data = None
         le_data = None
         sepsis_patient_flattened_data = sepsis_patient_flattened_data.groupby(by="icustay_id").apply(lambda x : x.fillna(method="ffill").fillna(method="bfill")).reset_index()
+        #sepsis_patient_flattened_data = sepsis_patient_flattened_data.dropna(axis=1, how="all")
         #sepsis_patient_flattened_data = sepsis_patient_flattened_data.dropna(0)
         
         sepsis_patient_flattened_data.to_csv(sepsis_patient_flattened_data_csv_path)
@@ -217,11 +259,6 @@ else:
 print("Patients with SIRS condition within first hour of hospital admission or first four hours of ICU admittence:", sirs_cond_icu_patients["icustay_id"].nunique())
 print("Patients without SIRS condition within first hour of hospital admission or first four hours of ICU admittence:", no_sirs_cond_icu_patients["icustay_id"].nunique())
 
-sepsis_patient_flattened_data = no_sirs_cond_icu_patients#pd.read_csv(sepsis_patient_flattened_data_csv_path)
-j = 0
-k = 0
-hadm_id_5h_sirs_episode = list()
-
 def five_hours_sirs(hadm_data):
     i = 0
     h5 = False
@@ -240,14 +277,12 @@ def five_hours_sirs(hadm_data):
 
     return hadm_data
 
-#, "heart_rate_max", "respiratory_rate_max", "paco2_min", "body_temp_min", "body_temp_max", "white_blood_cells_k_per_uL_min", "white_blood_cells_k_per_uL_max", "immature_bands_percentage_max"
-sepsis_patient_flattened_data = sepsis_patient_flattened_data.groupby(["icustay_id"]).apply(five_hours_sirs)
+no_sirs_cond_icu_patients = no_sirs_cond_icu_patients.groupby(["icustay_id"]).apply(five_hours_sirs)
 
-# conf = sepsis_patient_flattened_data[(hadm_id_5h_sirs_episode)]
-# conf.to_csv(os.path.join(working_directory, "conf.csv"))
-#print(j, "5h SIRS episode detected.", k, "Not 5h episodes.", j + k, "Total episodes.")
-sepsis_patient_flattened_data["icd9_code"] = sepsis_patient_flattened_data["icd9_code"].astype(str)
-sepsis_patient_flattened_data["acquired_sirs"] = (sepsis_patient_flattened_data["continuous_sirs"] & sepsis_patient_flattened_data["icd9_code"].transform(lambda x : x.startswith("9959")))
-print(sepsis_patient_flattened_data[(sepsis_patient_flattened_data["acquired_sirs"])]["hadm_id"].nunique(), "admissions resulted in acquired in hospital sepsis.", sepsis_patient_flattened_data["hadm_id"].nunique() - sepsis_patient_flattened_data[(sepsis_patient_flattened_data["acquired_sirs"])]["hadm_id"].nunique(), "admissions didn't result in hospital acquired sepsis.")
-sepsis_patient_flattened_data = sepsis_patient_flattened_data.drop("continuous_sirs")
-sepsis_patient_flattened_data.to_csv(sepsis_patients_csv_path)
+no_sirs_cond_icu_patients["icd9_code"] = no_sirs_cond_icu_patients["icd9_code"].astype(str)
+no_sirs_cond_icu_patients["acquired_sepsis"] = (no_sirs_cond_icu_patients["continuous_sirs"] & no_sirs_cond_icu_patients["icd9_code"].transform(lambda x : x.startswith("9959")))
+
+no_sirs_cond_icu_patients = no_sirs_cond_icu_patients.drop(columns=["continuous_sirs", "index", "time_since_hospital_admit", "time_since_icu_admit", "time_between_admit_and_icu"])
+
+print(no_sirs_cond_icu_patients[(no_sirs_cond_icu_patients["acquired_sepsis"])]["hadm_id"].nunique(), "admissions resulted in hospital acquired sepsis.", no_sirs_cond_icu_patients["hadm_id"].nunique() - no_sirs_cond_icu_patients[(no_sirs_cond_icu_patients["acquired_sepsis"])]["hadm_id"].nunique(), "admissions didn't result in hospital acquired sepsis.")
+no_sirs_cond_icu_patients.to_csv(sepsis_patients_csv_path)

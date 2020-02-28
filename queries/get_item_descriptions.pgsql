@@ -1,1 +1,1 @@
-SELECT * FROM mimiciii.d_items
+SELECT * FROM mimiciii.d_items items ORDER BY items.itemid

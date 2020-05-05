@@ -352,24 +352,52 @@ print("Patients without SIRS condition within first hour of hospital admission o
 
 def five_hours_sirs(hadm_data):
     i = 0
+    k = 0
     h5 = False
     sirs_cond_indicies = detect_sirs_condition(hadm_data)
     for value in sirs_cond_indicies:
         if value:
             i += 1
         else:
-            if i > 5:
+            if i >= 5:
                 i = 0
                 h5 = True
+                k -= 5
                 break
             i = 0
 
+        k += 1
+
     hadm_data["continuous_sirs"] = hadm_data["icustay_id"].transform(lambda x: h5)
+    hadm_data["time_zero"] = hadm_data["icustay_id"].transform(lambda x: k)
 
     return hadm_data
 
 
-no_sirs_cond_icu_patients = no_sirs_cond_icu_patients.groupby(["icustay_id"]).apply(five_hours_sirs)
+def get_pre_episode_data(hadm_data):
+    i = 0
+    k = 0
+    h5 = False
+    sirs_cond_indicies = detect_sirs_condition(hadm_data)
+    for value in sirs_cond_indicies:
+        if value:
+            i += 1
+        else:
+            if i >= 5:
+                i = 0
+                h5 = True
+                k -= 5
+                break
+            i = 0
+
+        k += 1
+
+    hadm_data["continuous_sirs"] = hadm_data["icustay_id"].transform(lambda x: h5)
+
+    return hadm_data.iloc[k:k+5]
+
+
+no_sirs_cond_icu_patients = no_sirs_cond_icu_patients.groupby(["icustay_id"]).apply(get_pre_episode_data)
 
 no_sirs_cond_icu_patients["icd9_code"] = no_sirs_cond_icu_patients["icd9_code"].astype(str)
 no_sirs_cond_icu_patients["acquired_sepsis"] = (
@@ -382,8 +410,8 @@ no_sirs_cond_icu_patients = no_sirs_cond_icu_patients.drop(
 
 no_sirs_cond_icu_patients = no_sirs_cond_icu_patients.dropna(axis=0, how="any")
 
-print(no_sirs_cond_icu_patients[(no_sirs_cond_icu_patients["acquired_sepsis"])]["hadm_id"].nunique(),
-      "admissions resulted in hospital acquired sepsis.", no_sirs_cond_icu_patients["hadm_id"].nunique() -
-      no_sirs_cond_icu_patients[(no_sirs_cond_icu_patients["acquired_sepsis"])]["hadm_id"].nunique(),
+print(no_sirs_cond_icu_patients[(no_sirs_cond_icu_patients["acquired_sepsis"])]["icustay_id"].nunique(),
+      "admissions resulted in hospital acquired sepsis.", no_sirs_cond_icu_patients["icustay_id"].nunique() -
+      no_sirs_cond_icu_patients[(no_sirs_cond_icu_patients["acquired_sepsis"])]["icustay_id"].nunique(),
       "admissions didn't result in hospital acquired sepsis.")
 no_sirs_cond_icu_patients.to_csv(sepsis_patients_csv_path)

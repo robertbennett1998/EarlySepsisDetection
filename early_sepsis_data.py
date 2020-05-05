@@ -46,6 +46,7 @@ class EarlySepsisData(hpo.Data):
                 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
             return dataset
+
         data = pd.read_csv(self._data_path)
 
         hospital_admission_count = data["hadm_id"].nunique()
@@ -69,12 +70,17 @@ class EarlySepsisData(hpo.Data):
                            "immature_bands_percentage_max", "blood_ph_min",
                            "blood_ph_mean", "blood_ph_max"]
 
-        print(data[feature_columns].shape, " - ", data["acquired_sepsis"].shape)
+        labels = data.drop_duplicates("icustay_id")["acquired_sepsis"].values
 
-        data = tf.data.Dataset.from_tensor_slices((data[feature_columns].values, data["acquired_sepsis"].values))
+        data = data.groupby("icustay_id").apply(lambda group: group[feature_columns].values)
+
+        data = tf.data.Dataset.from_tensor_slices(((data, labels)))
+
+        #data = tf.data.Dataset.from_tensor_slices((data[feature_columns].values, data["acquired_sepsis"].values))
 
         for x in data.take(1):
             print(x)
+            print(x[0].shape)
 
         self._training_data = data.take(self._training_hospital_admission_count)
         self._test_data = data.skip(self._training_hospital_admission_count)
